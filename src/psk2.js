@@ -5,7 +5,6 @@ const debug = require('debug')('ilp-fetch:psk2')
 const CHUNK_AMOUNT = 250 // TODO
 
 async function streamPayment ({
-  firstTry,
   url,
   opts,
   payParams,
@@ -35,7 +34,7 @@ async function streamPayment ({
       resolved = true
       throw e
     })
-  
+
   while (!resolved) {
     debug('streaming chunk via psk2. amount=' + CHUNK_AMOUNT,
       'total=' + total)
@@ -65,7 +64,7 @@ async function streamPayment ({
 
 module.exports = async function handlePsk2Request (params) {
   const {
-    firstTry,
+    url,
     opts,
     payParams,
     plugin,
@@ -85,7 +84,7 @@ module.exports = async function handlePsk2Request (params) {
     id,
     sharedSecret,
     destinationAccount,
-    destinationAmount,  
+    destinationAmount,
     sequence: 0
   })
 
@@ -96,7 +95,7 @@ module.exports = async function handlePsk2Request (params) {
   }
 
   debug('sending payment via psk2. sourceAmount=' + sourceAmount)
-  const response = await PSK2.sendSingleChunk(plugin, {
+  await PSK2.sendSingleChunk(plugin, {
     id,
     destinationAccount,
     sharedSecret,

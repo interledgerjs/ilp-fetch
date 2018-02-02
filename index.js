@@ -1,11 +1,13 @@
 const fetch = require('node-fetch')
-const debug = requre('debug')('ilp-fetch')
+const debug = require('debug')('ilp-fetch')
 const crypto = require('crypto')
 const base64url = buffer => buffer.toString('base64')
   .replace(/=/g, '')
   .replace(/\+/g, '-')
   .replace(/\//g, '_')
 
+const PSK_IDENTIFIER = 'interledger-psk'
+const PSK_2_IDENTIFIER = 'interledger-psk2'
 const handlePsk2Request = require('./src/psk2')
 
 async function ilpFetch (url, _opts) {
@@ -15,12 +17,12 @@ async function ilpFetch (url, _opts) {
 
   // Add the payment token to the headers
   const headers = Object.assign({},
-      (_opts.headers || {}),
-      { 'Pay-Token': payTokenText })
+    (_opts.headers || {}),
+    { 'Pay-Token': payTokenText })
 
   // Make the request for the first time---if the endpoint is paid, this will
   // fail.
-  debug('attempting http request. url=' + url, 'opts=', opts)
+  debug('attempting http request. url=' + url, 'opts=', _opts)
   const opts = Object.assign({}, _opts, { headers })
   const firstTry = await fetch(url, opts)
 
@@ -53,6 +55,8 @@ async function ilpFetch (url, _opts) {
       handler = handlePsk2Request
       break
 
+    case PSK_IDENTIFIER:
+      debug('PSK1 is no longer supported. use `superagent-ilp` for legacy PSK.')
     default:
       debug('no handler exists for payment method. method=' + payMethod)
       throw new Error('unsupported payment method in `Pay`. ' +
@@ -62,3 +66,5 @@ async function ilpFetch (url, _opts) {
   debug('calling handler.')
   return handler({ firstTry, url, opts, payParams, plugin, payToken })
 }
+
+module.exports = ilpFetch
