@@ -63,6 +63,9 @@ async function ilpFetch (url, _opts) {
         'header=' + firstTry.headers.get('Pay'))
   }
 
+  debug('connecting plugin')
+  await plugin.connect()
+
   debug('calling handler.')
   return handler({ firstTry, url, opts, payParams, plugin, payToken })
 }
