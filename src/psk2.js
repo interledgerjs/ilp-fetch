@@ -1,6 +1,7 @@
 const PSK2 = require('ilp-protocol-psk2')
 const fetch = require('node-fetch')
 const BigNumber = require('bignumber.js')
+const crypto = require('crypto')
 const debug = require('debug')('ilp-fetch:psk2')
 const CHUNK_AMOUNT = 250 // TODO
 
@@ -44,14 +45,15 @@ async function streamPayment ({
     }
 
     try {
-      await PSK2.sendSingleChunk(plugin, {
-        id,
+      const result = await PSK2.sendRequest(plugin, {
         destinationAccount,
         sharedSecret,
         sourceAmount: CHUNK_AMOUNT,
-        lastChunk: false,
-        sequence
+        data: payToken
       })
+      if (!result.fulfilled) {
+        throw new Error(`payment rejected with code: ${result.code}${result.data.length ? ' ' + result.data.toString('utf8') : ''}`)
+      }
       total += CHUNK_AMOUNT
     } catch (e) {
       debug('error on payment chunk. message=' + e.message)
@@ -80,13 +82,17 @@ module.exports = async function handlePsk2Request (params) {
 
   debug('quoting destination amount via psk2. amount=' + destinationAmount,
     'account=' + destinationAccount)
-  const { sourceAmount } = await PSK2.quoteDestinationAmount(plugin, {
-    id,
+  const testPaymentAmount = 1000
+  const testPaymentResult = await PSK2.sendRequest(plugin, {
     sharedSecret,
     destinationAccount,
-    destinationAmount,
-    sequence: 0
+    sourceAmount: testPaymentAmount,
+    unfulfillableCondition: crypto.randomBytes(32)
   })
+  const sourceAmount = new BigNumber(destinationAmount)
+    .dividedBy(testPaymentResult.destinationAmount)
+    .times(testPaymentAmount)
+    .round(0, BigNumber.ROUND_CEIL)
 
   if (new BigNumber(sourceAmount).gt(opts.maxPrice)) {
     throw new Error('quoted psk2 source amount exceeds max acceptable price.' +
@@ -95,14 +101,16 @@ module.exports = async function handlePsk2Request (params) {
   }
 
   debug('sending payment via psk2. sourceAmount=' + sourceAmount)
-  await PSK2.sendSingleChunk(plugin, {
-    id,
+  const result = await PSK2.sendRequest(plugin, {
     destinationAccount,
     sharedSecret,
     sourceAmount,
     minDestinationAmount: destinationAmount,
-    sequence: 1
+    data: payToken
   })
+  if (!result.fulfilled) {
+    throw new Error(`payment rejected with code: ${result.code}${result.data.length ? ' ' + result.data.toString('utf8') : ''}`)
+  }
 
   debug('retrying request with funded token')
   return fetch(url, opts)
