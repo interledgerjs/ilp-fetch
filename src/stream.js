@@ -22,7 +22,8 @@ async function streamPayment ({
   const stream = connection.createStream()
   stream.setSendMax(opts.maxPrice)
 
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise(resolve => stream.on('data', resolve))
+
   return fetch(url, opts)
 }
 
