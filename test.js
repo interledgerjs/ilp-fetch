@@ -1,13 +1,10 @@
-const plugin = require('ilp-plugin')()
 const fetch = require('.')
 
-fetch('https://alpha.unhash.io', {
-  plugin,
-  maxPrice: 100,
-  method: 'POST',
-  body: 'hello world'
+fetch('http://localhost:8090', {
+  maxPrice: 10000,
+  method: 'GET'
 })
-  .then(r => r.json())
+  .then(r => r.text())
   .then(json => {
     console.log('json response:', json)
     process.exit(0)

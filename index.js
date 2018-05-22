@@ -8,7 +8,9 @@ const base64url = buffer => buffer.toString('base64')
 
 const PSK_IDENTIFIER = 'interledger-psk'
 const PSK_2_IDENTIFIER = 'interledger-psk2'
+const STREAM_IDENTIFIER = 'interledger-stream'
 const handlePsk2Request = require('./src/psk2')
+const handleStreamRequest = require('./src/stream')
 
 async function ilpFetch (url, _opts) {
   // Generate the payment token to go along with our requests
@@ -33,11 +35,8 @@ async function ilpFetch (url, _opts) {
     return firstTry
   }
 
-  const { maxPrice, plugin } = opts
-
-  if (!plugin) {
-    throw new Error('opts.plugin must be specified on paid request')
-  }
+  const maxPrice = opts.maxPrice
+  const plugin = opts.plugin || require('ilp-plugin')()
 
   if (!maxPrice) {
     throw new Error('opts.maxPrice must be specified on paid request')
@@ -53,6 +52,11 @@ async function ilpFetch (url, _opts) {
     case PSK_2_IDENTIFIER:
       debug('using PSK2 handler.')
       handler = handlePsk2Request
+      break
+
+    case STREAM_IDENTIFIER:
+      debug('using STREAM handler.')
+      handler = handleStreamRequest
       break
 
     case PSK_IDENTIFIER:
