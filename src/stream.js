@@ -24,7 +24,13 @@ async function streamPayment ({
 
   await new Promise(resolve => stream.on('data', resolve))
 
-  return fetch(url, opts)
+  const result = await fetch(url, opts)
+
+  if (stream.isOpen()) {
+    stream.end()
+  }
+
+  return result
 }
 
 module.exports = streamPayment
