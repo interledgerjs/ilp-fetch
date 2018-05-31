@@ -30,6 +30,7 @@ async function streamPayment ({
     stream.end()
   }
 
+  result.price = stream.totalSent
   return result
 }
 

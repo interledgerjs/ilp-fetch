@@ -32,6 +32,7 @@ async function ilpFetch (url, _opts) {
   // required.
   if (firstTry.status !== 402) {
     debug('request is not paid. returning result.')
+    firstTry.price = '0'
     return firstTry
   }
 
