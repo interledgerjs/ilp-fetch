@@ -28,6 +28,7 @@ async function streamPayment ({
     .then((res) => {
       debug('streaming request success.')
       resolved = true
+      res.price = String(total)
       return res
     })
     .catch((e) => {
