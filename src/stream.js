@@ -28,9 +28,9 @@ async function streamPayment ({
 
   if (stream.isOpen()) {
     stream.end()
+    // Wait for the stream 'end' event to be emitted so the stream can finish sending funds
+    await new Promise(resolve => stream.once('end', resolve))
   }
-  // Wait for the stream 'end' event to be emitted so the stream can finish sending funds
-  await new Promise(resolve => stream.once('end', resolve))
   result.price = stream.totalSent
   return result
 }
