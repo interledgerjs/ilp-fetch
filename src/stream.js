@@ -17,7 +17,7 @@ async function streamPayment ({
     plugin,
     destinationAccount,
     sharedSecret
-  })  
+  })
 
   const stream = connection.createStream()
   stream.setSendMax(opts.maxPrice)
@@ -29,7 +29,8 @@ async function streamPayment ({
   if (stream.isOpen()) {
     stream.end()
   }
-
+  // Wait for the stream 'end' event to be emitted so the stream can finish sending funds
+  await new Promise(resolve => stream.once('end', resolve))
   result.price = stream.totalSent
   return result
 }
