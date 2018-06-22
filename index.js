@@ -1,5 +1,5 @@
 const fetch = require('node-fetch')
-const debug = require('debug')('ilp-fetch')
+const log = require('ilp-logger')('ilp-fetch')
 const crypto = require('crypto')
 const base64url = buffer => buffer.toString('base64')
   .replace(/=/g, '')
@@ -24,14 +24,14 @@ async function ilpFetch (url, _opts) {
 
   // Make the request for the first time---if the endpoint is paid, this will
   // fail.
-  debug('attempting http request. url=' + url, 'opts=', _opts)
+  log.info('attempting http request. url=' + url, 'opts=', _opts)
   const opts = Object.assign({}, _opts, { headers })
   const firstTry = await fetch(url, opts)
 
   // If the request succeeded, just return the result. Keep going if payment is
   // required.
   if (firstTry.status !== 402) {
-    debug('request is not paid. returning result.')
+    log.info('request is not paid. returning result.')
     firstTry.price = '0'
     return firstTry
   }
@@ -46,32 +46,32 @@ async function ilpFetch (url, _opts) {
   // Parse the `Pay` header to determine how to pay the receiver. A handler is
   // selected by checking what the payment method is.
   const [ payMethod, ...payParams ] = firstTry.headers.get('Pay').split(' ')
-  debug('parsed `Pay` header. method=' + payMethod, 'params=', payParams)
+  log.trace('parsed `Pay` header. method=' + payMethod, 'params=', payParams)
 
   let handler
   switch (payMethod) {
     case PSK_2_IDENTIFIER:
-      debug('using PSK2 handler.')
+      log.trace('using PSK2 handler.')
       handler = handlePsk2Request
       break
 
     case STREAM_IDENTIFIER:
-      debug('using STREAM handler.')
+      log.trace('using STREAM handler.')
       handler = handleStreamRequest
       break
 
     case PSK_IDENTIFIER:
-      debug('PSK1 is no longer supported. use `superagent-ilp` for legacy PSK.')
+      log.warn('PSK1 is no longer supported. use `superagent-ilp` for legacy PSK.')
     default:
-      debug('no handler exists for payment method. method=' + payMethod)
+      log.error('no handler exists for payment method. method=' + payMethod)
       throw new Error('unsupported payment method in `Pay`. ' +
         'header=' + firstTry.headers.get('Pay'))
   }
 
-  debug('connecting plugin')
+  log.trace('connecting plugin')
   await plugin.connect()
 
-  debug('calling handler.')
+  log.trace('calling handler.')
   return handler({ firstTry, url, opts, payParams, plugin, payToken })
 }
 
