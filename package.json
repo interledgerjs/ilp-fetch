@@ -22,7 +22,7 @@
     "ilp-logger": "^1.0.0",
     "ilp-plugin": "^3.1.1",
     "ilp-protocol-psk2": "^0.3.1",
-    "ilp-protocol-stream": "^1.4.1",
+    "ilp-protocol-stream": "^1.4.2",
     "node-fetch": "^2.1.2"
   }
 }
