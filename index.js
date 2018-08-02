@@ -72,7 +72,14 @@ async function ilpFetch (url, _opts) {
   await plugin.connect()
 
   log.trace('calling handler.')
-  return handler({ firstTry, url, opts, payParams, plugin, payToken })
+  const result = await handler({ firstTry, url, opts, payParams, plugin, payToken })
+
+  // clean up the plugin if ilp-fetch created it
+  if (!opts.plugin) {
+    await plugin.disconnect()
+  }
+
+  return result
 }
 
 module.exports = ilpFetch
