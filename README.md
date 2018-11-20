@@ -44,7 +44,7 @@ fetch('https://alpha.unhash.io', {
 
 ## Test
 
-First run [Moneyd](https://github.com/sharafian/moneyd) on your machine. Then:
+First run [Moneyd](https://github.com/interledgerjs/moneyd) on your machine. Then:
 
 ```
 git clone https://github.com/interledgerjs/ilp-fetch.git

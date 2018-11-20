@@ -32,6 +32,14 @@ async function streamPayment ({
     await new Promise(resolve => stream.once('end', resolve))
   }
   result.price = stream.totalSent
+  result.destination = {
+    assetCode: connection.destinationAssetCode,
+    assetScale: connection.destinationAssetScale
+  }
+  result.source = {
+    assetCode: connection.sourceAssetCode,
+    assetScale: connection.sourceAssetScale
+  }
   return result
 }
 
